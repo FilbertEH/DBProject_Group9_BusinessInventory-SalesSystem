@@ -53,7 +53,7 @@
 2.  Code your task.
 3.  Push and tell the group.
 
-### Member 1 - Keita (Leader)
+### Member 1 - Keita
 
 - **File:** `crud_category.py`
 - **Tasks:**

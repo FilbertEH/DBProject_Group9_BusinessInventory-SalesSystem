@@ -5,3 +5,4 @@ venv/
 # Ignore the secret file
 .env
 week3_CRUD_demo/.env
+week4_integration/.env

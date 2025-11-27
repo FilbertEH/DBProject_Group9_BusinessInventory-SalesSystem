@@ -8,7 +8,8 @@ def get_dashboard_stats():
         "revenue": 0.0,
         "low_stock": 0,
         "total_items": 0,
-        "recent_sales": []
+        "recent_sales": [],
+        'low_stock_items': []
     }
 
     try:
@@ -38,6 +39,17 @@ def get_dashboard_stats():
         """
         cursor.execute(query_recent)
         stats["recent_sales"] = cursor.fetchall()
+
+        # Low Stock Items (NEW)
+        cursor.execute("""
+            SELECT product_name, quantity_stock, low_stock_threshold
+            FROM Product 
+            WHERE quantity_stock <= low_stock_threshold
+            ORDER BY quantity_stock ASC
+            LIMIT 10
+        """)
+
+        stats["low_stock_items"] = cursor.fetchall()
 
     except Exception as e:
         print(f"Stats Error: {e}")

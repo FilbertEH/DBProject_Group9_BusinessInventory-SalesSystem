@@ -1,0 +1,121 @@
+{#
+  Reusable Jinja2 Components for week4_integration
+
+  Usage:
+    {% from 'components.html' import stat_card, button, form_input %}
+
+  Components:
+    - stat_card: Dashboard statistics card
+    - button: Consistent buttons and links
+    - form_input: Form fields with labels
+#}
+
+{#
+  Stat Card Component
+
+  Displays a dashboard statistic card with label, value, and optional subtitle.
+
+  Parameters:
+    - label (required): Uppercase label text (e.g., "Total Revenue")
+    - value (required): Main display value
+    - subtitle (optional): Small text below value
+    - color (optional): Tailwind color class for value (default: 'gray-800')
+    - class (optional): Additional CSS classes
+
+  Example:
+    {{ stat_card("Total Revenue", "$1,234.56") }}
+    {{ stat_card("Low Stock", "5 items", color='red-600') }}
+#}
+{% macro stat_card(label, value, subtitle=None, color='gray-800', class='') %}
+<div class="bg-white p-6 rounded-lg shadow-md {{ class }}">
+  <h3 class="text-gray-500 text-sm font-bold uppercase">{{ label }}</h3>
+  <p class="text-3xl font-bold mt-2 text-{{ color }}">{{ value }}</p>
+  {% if subtitle %}
+  <span class="text-xs text-gray-500">{{ subtitle }}</span>
+  {% endif %}
+</div>
+{% endmacro %}
+
+{#
+  Button Component
+
+  Renders a styled button or link with consistent styling.
+
+  Parameters:
+    - text (required): Button label text
+    - href (optional): If provided, renders as <a> tag instead of <button>
+    - type (optional): Button type: 'button', 'submit', 'reset' (default: 'button')
+    - variant (optional): Style variant (default: 'primary')
+        * 'primary' - Green
+        * 'secondary' - Gray
+        * 'danger' - Red
+    - class (optional): Additional CSS classes
+
+  Example:
+    {{ button("Confirm Sale", type='submit') }}
+    {{ button("View Details", href='/sales/123', variant='secondary') }}
+#}
+{% macro button(text, href=None, type='button', variant='primary', class='') %}
+{%- set variants = {
+  'primary': 'bg-green-600 hover:bg-green-700',
+  'secondary': 'bg-gray-600 hover:bg-gray-700',
+  'danger': 'bg-red-500 hover:bg-red-600'
+} -%}
+{%- set base = 'px-5 py-2 text-white rounded-lg shadow-md transition' -%}
+{%- set all_classes = [base, variants.get(variant, variants['primary']), class] | join(' ') -%}
+{% if href -%}
+<a href="{{ href }}" class="{{ all_classes }}">{{ text }}</a>
+{%- else -%}
+<button type="{{ type }}" class="{{ all_classes }}">{{ text }}</button>
+{%- endif %}
+{%- endmacro %}
+
+{#
+  Form Input Component
+
+  Renders a form input field with label and help text.
+  Supports text, number, and select inputs.
+
+  Parameters:
+    - name (required): Form field name
+    - label (required): Label text
+    - type (optional): 'text', 'number', or 'select' (default: 'text')
+    - required (optional): Whether field is required (default: False)
+    - placeholder (optional): Placeholder text
+    - value (optional): Pre-filled value
+    - min (optional): Min value for number inputs
+    - options (optional): For select: list of [value, label] tuples
+    - help_text (optional): Help text below input
+    - class (optional): Additional CSS classes for wrapper div
+
+  Example:
+    {{ form_input('customer_id', 'Customer ID', type='number') }}
+    {{ form_input('status', 'Status', type='select', options=[('active', 'Active'), ('inactive', 'Inactive')]) }}
+#}
+{% macro form_input(name, label, type='text', required=False, placeholder='', value='', min=None, options=None, help_text=None, class='') %}
+<div class="{{ class }}">
+  <label for="{{ name }}" class="block text-sm font-semibold text-gray-700 {% if help_text %}mb-1{% else %}mb-2{% endif %}">
+    {{ label }}{% if required %}<span class="text-red-500">*</span>{% endif %}
+  </label>
+
+  {% if type == 'select' %}
+  <select name="{{ name }}" id="{{ name }}" {% if required %}required{% endif %}
+    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+    {% for val, lbl in options %}
+    <option value="{{ val }}">{{ lbl }}</option>
+    {% endfor %}
+  </select>
+  {% else %}
+  <input type="{{ type }}" name="{{ name }}" id="{{ name }}"
+    {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+    {% if value %}value="{{ value }}"{% endif %}
+    {% if min is not none %}min="{{ min }}"{% endif %}
+    {% if required %}required{% endif %}
+    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+  {% endif %}
+
+  {% if help_text %}
+  <p class="text-xs text-gray-500 mt-1">{{ help_text }}</p>
+  {% endif %}
+</div>
+{% endmacro %}

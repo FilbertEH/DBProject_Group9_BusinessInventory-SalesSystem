@@ -1,0 +1,142 @@
+{% extends "base.html" %} {% from 'components.html' import button, form_input %}
+{% block title %}New Sale - Inventory System{% endblock %} {% block content %}
+<div class="container mx-auto max-w-4xl">
+  <!-- Header Section -->
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Point of Sale</h1>
+    {{ button("← Back to History", href=url_for('sales_history'),
+    variant='secondary') }}
+  </div>
+
+  <!-- POS Form -->
+  <div class="bg-white rounded-lg shadow-lg p-6">
+    <form
+      action="{{ url_for('create_sale_action') }}"
+      method="POST"
+      id="saleForm"
+    >
+      <!-- Customer Selection (Optional) -->
+      <div class="mb-6 p-4">
+        {{ form_input( 'customer_id', 'Customer (Optional)', type='number',
+        placeholder='Enter Customer ID (leave blank for walk-in customer)',
+        help_text='Leave empty if customer is not registered' ) }}
+      </div>
+
+      <!-- Items Section -->
+      <div class="mb-6">
+        <h2 class="text-lg font-bold text-gray-800 mb-3">Items to sell</h2>
+
+        <div id="itemsContainer">
+          <div class="item-row grid grid-cols-12 gap-3 mb-3 items-end">
+            {% set product_options = [('', 'Select Product')] %} {% for product
+            in products %} {% set _ = product_options.append((product[0], '%s -
+            Stock: %d - $%.2f'|format(product[1], product[2], product[3]))) %}
+            {% endfor %} {{ form_input( 'product_id[]', 'Product',
+            type='select', required=True, options=product_options,
+            class='col-span-7' ) }} {{ form_input( 'quantity[]', 'Quantity',
+            type='number', required=True, placeholder='Qty', min=1,
+            class='col-span-3' ) }}
+
+            <!-- Remove Button (Hidden for first row) -->
+            <div class="col-span-2">
+              <button
+                type="button"
+                class="remove-item-btn w-full bg-gray-300 text-gray-500 px-3 py-2 rounded-lg cursor-not-allowed"
+                disabled
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add Item Button -->
+        <button
+          type="button"
+          id="addItemBtn"
+          class="w-full px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-md transition font-semibold flex items-center justify-center gap-2"
+        >
+          + Add Another Item
+        </button>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="flex gap-3">
+        {{ button("✓ Confirm Sale", type='submit', class='flex-1 font-bold') }}
+        {{ button("✕ Cancel", href=url_for('sales_history'), variant='danger',
+        class='flex-1 font-bold text-center') }}
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- JavaScript for Dynamic Rows -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const addItemBtn = document.getElementById("addItemBtn");
+    const itemsContainer = document.getElementById("itemsContainer");
+
+    // Add new item row
+    addItemBtn.addEventListener("click", function () {
+      const firstRow = itemsContainer.querySelector(".item-row");
+      const newRow = firstRow.cloneNode(true);
+
+      // Clear values
+      newRow.querySelectorAll("select, input").forEach((field) => {
+        field.value = "";
+      });
+
+      // Enable remove button
+      const removeBtn = newRow.querySelector(".remove-item-btn");
+      removeBtn.disabled = false;
+      removeBtn.classList.remove(
+        "bg-gray-300",
+        "text-gray-500",
+        "cursor-not-allowed"
+      );
+      removeBtn.classList.add(
+        "bg-red-500",
+        "text-white",
+        "hover:bg-red-600",
+        "cursor-pointer"
+      );
+
+      itemsContainer.appendChild(newRow);
+    });
+
+    // Remove item row (Event Delegation)
+    itemsContainer.addEventListener("click", function (e) {
+      if (
+        e.target.classList.contains("remove-item-btn") &&
+        !e.target.disabled
+      ) {
+        e.target.closest(".item-row").remove();
+      }
+    });
+
+    // Form validation
+    document
+      .getElementById("saleForm")
+      .addEventListener("submit", function (e) {
+        const rows = itemsContainer.querySelectorAll(".item-row");
+        let hasValidItem = false;
+
+        rows.forEach((row) => {
+          const productId = row.querySelector(
+            'select[name="product_id[]"]'
+          ).value;
+          const quantity = row.querySelector('input[name="quantity[]"]').value;
+
+          if (productId && quantity && quantity > 0) {
+            hasValidItem = true;
+          }
+        });
+
+        if (!hasValidItem) {
+          e.preventDefault();
+          alert("⚠️ Please add at least one product with valid quantity!");
+        }
+      });
+  });
+</script>
+{% endblock %}

@@ -1,44 +1,68 @@
-{% extends "base.html" %} {% block title %}Dashboard - Inventory System{%
-endblock %} {% block content %}
+{% extends "base.html" %}
+{% from 'components.html' import stat_card %}
+
+{% block content %}
+
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-  <!-- Card 1 -->
-  <div class="bg-white p-6 rounded-lg shadow-md border-l-4 border-blue-500">
-    <h3 class="text-gray-500 text-sm font-uppercase">Total Products</h3>
-    <p class="text-3xl font-bold mt-2">--</p>
-    <span class="text-xs text-gray-400">Items in stock</span>
-  </div>
+  <!-- 1. Revenue -->
+  {{ stat_card("Total Revenue", "$%.2f"|format(stats.revenue)) }}
 
-  <!-- Card 2 -->
-  <div class="bg-white p-6 rounded-lg shadow-md border-l-4 border-green-500">
-    <h3 class="text-gray-500 text-sm font-uppercase">Total Sales</h3>
-    <p class="text-3xl font-bold mt-2">$ --</p>
-    <span class="text-xs text-gray-400">Revenue this month</span>
-  </div>
+  <!-- 2. Low Stock (Red Alert if > 0) -->
+  {{ stat_card(
+    "Low Stock Alerts",
+    stats.low_stock,
+    subtitle="Items below threshold",
+    color='red-600' if stats.low_stock > 0 else 'gray-800'
+  ) }}
 
-  <!-- Card 3 -->
-  <div class="bg-white p-6 rounded-lg shadow-md border-l-4 border-red-500">
-    <h3 class="text-gray-500 text-sm font-uppercase">Low Stock Alerts</h3>
-    <p class="text-3xl font-bold mt-2 text-red-600">--</p>
-    <span class="text-xs text-gray-400">Items need reordering</span>
-  </div>
+  <!-- 3. Total Items -->
+  {{ stat_card("Total Products", stats.total_items) }}
 </div>
 
-<div class="bg-white p-8 rounded-lg shadow-md text-center">
-  <h1 class="text-2xl font-bold mb-4">Welcome to the Inventory System</h1>
-  <p class="text-gray-600 mb-6">
-    Use the navigation bar above to manage your store.
-  </p>
-  <div class="space-x-4">
-    <a
-      href="/products"
-      class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition"
-      >Manage Inventory</a
-    >
-    <a
-      href="/sales"
-      class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition"
-      >New Sale</a
-    >
-  </div>
+<!-- Low Stock Products List -->
+{% if stats.low_stock_items %}
+<div class="my-6 bg-red-50 p-4 rounded-lg">
+  <h3 class="text-red-800 font-bold mb-3">Products Running Low:</h3>
+  <ul class="space-y-2">
+    {% for item in stats.low_stock_items %}
+    <li class="text-sm text-gray-700 list-disc list-inside">
+      <span class="font-semibold">{{ item[0] }}</span>
+      - Stock: <span class="text-red-600 font-bold">{{ item[1] }}</span>
+      (Threshold: {{ item[2] }})
+    </li>
+    {% endfor %}
+  </ul>
 </div>
+{% endif %}
+
+<!-- RECENT ACTIVITY ROW -->
+<div class="bg-white rounded-lg shadow-md p-6">
+  <h3 class="text-lg font-bold mb-4">Recent Sales Activity</h3>
+
+  {% if stats.recent_sales %}
+  <table class="w-full text-left border-collapse">
+    <thead>
+      <tr class="text-sm text-gray-500 border-b">
+        <th class="py-2">Date</th>
+        <th class="py-2">Operator</th>
+        <th class="py-2 text-right">Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for sale in stats.recent_sales %}
+      <tr class="border-b last:border-0 hover:bg-gray-50">
+        <td class="py-3">{{ sale[1].strftime('%Y-%m-%d %H:%M') }}</td>
+        <td class="py-3">{{ sale[2] }}</td>
+        <td class="py-3 text-right font-medium">
+          ${{ "%.2f"|format(sale[3]) }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="text-gray-400 italic">No sales recorded yet.</p>
+  {% endif %}
+</div>
+
 {% endblock %}

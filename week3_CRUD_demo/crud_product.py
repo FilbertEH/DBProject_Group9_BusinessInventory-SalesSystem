@@ -1,4 +1,3 @@
-# crud_product.py  (Week 3 – minimal & matches main.py)
 from db_connect import get_connection
 
 def show_all_products():

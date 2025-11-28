@@ -4,7 +4,14 @@ from dotenv import load_dotenv
 from stats import get_dashboard_stats
 from sale import create_sale, get_sale_history, get_sale_with_items
 from crud_customer import get_all_customers, add_customer
-
+from decimal import Decimal, InvalidOperation
+from crud_product import (
+    list_products,
+    list_categories,
+    create_product,
+    delete_product,
+    get_all_products, 
+)
 
 load_dotenv()
 
@@ -41,17 +48,8 @@ def sales_history():
 
 @app.route('/sales/new')
 def new_sale_form():
-    """Show the POS form for creating a new sale"""
-    
-    # TEMPORARY: Mock data matching db_setup.py
-    # TODO: Replace with get_all_products() when Filbert implements crud_product.py
-    products = [
-        (1, 'Wireless Mouse', 50, 15.50),
-        (2, 'USB Keyboard', 30, 25.00),
-        (3, 'Notebook A4', 100, 2.50),
-        (4, 'Mineral Water', 100, 1.00)
-    ]
-    
+    """Show the POS form for creating a new sale (uses live products)."""
+    products = get_all_products()  # [(id, name, stock, price)]
     return render_template('new_sale.html', products=products)
 
 @app.route('/sales/create', methods=['POST'])
@@ -96,7 +94,46 @@ def create_sale_action():
 # Filbert will work here
 @app.route('/products')
 def product_list():
-    return "Product Page (Under Construction by Filbert)"
+    rows = list_products()  # [(id, name, sku, price, qty, category_name)]
+    return render_template('products.html', rows=rows)
+
+@app.route('/product/add', methods=['GET', 'POST'])
+def product_add():
+    categories = list_categories()  # [(id, name)]
+    if request.method == 'POST':
+        name = (request.form.get('product_name') or '').strip()
+        sku  = (request.form.get('sku') or '').strip()
+        cat  = request.form.get('category_id')
+        qty  = request.form.get('quantity_stock', '0')
+        price = request.form.get('price', '0')
+
+        if not name or not sku or not cat:
+            flash('Name, SKU, and Category are required.', 'error')
+            return render_template('add_product.html', categories=categories)
+
+        try:
+            qty = int(qty); price = Decimal(price)
+            if qty < 0 or price < 0:
+                raise ValueError
+        except (ValueError, InvalidOperation):
+            flash('Quantity and price must be valid non-negative numbers.', 'error')
+            return render_template('add_product.html', categories=categories)
+
+        new_id, err = create_product(name, sku, price, qty, int(cat))
+        if err:
+            flash(err, 'error')
+            return render_template('add_product.html', categories=categories)
+
+        flash('Product created.', 'success')
+        return redirect(url_for('product_list'))
+
+    return render_template('add_product.html', categories=categories)
+
+@app.route('/product/delete/<int:id>', methods=['POST'])
+def product_delete(id):
+    ok, msg = delete_product(id)
+    flash('Product deleted.' if ok else (msg or 'Delete failed.'), 'success' if ok else 'error')
+    return redirect(url_for('product_list'))
 
 # Arya will work here
 @app.route('/customers')

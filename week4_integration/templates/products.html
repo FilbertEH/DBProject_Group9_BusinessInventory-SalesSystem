@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% from 'components.html' import button %}
+
+{% block title %}Products - Inventory System{% endblock %}
+
+{% block content %}
+<div class="container mx-auto max-w-5xl">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">🧾 Products</h1>
+    {{ button("+ Add Product", href=url_for('product_add'), class='font-bold') }}
+  </div>
+
+  <div class="bg-white rounded-lg shadow overflow-hidden">
+    {% if rows and rows|length > 0 %}
+    <table class="min-w-full leading-normal">
+      <thead>
+        <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+          <th class="py-3 px-6 text-left">SKU</th>
+          <th class="py-3 px-6 text-left">Name</th>
+          <th class="py-3 px-6 text-left">Category</th>
+          <th class="py-3 px-6 text-right">Price</th>
+          <th class="py-3 px-6 text-right">Stock</th>
+          <th class="py-3 px-6 text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="text-gray-600 text-sm font-light">
+        {% for p in rows %}
+        <tr class="border-b border-gray-200 hover:bg-gray-50">
+          <td class="py-3 px-6 text-left">{{ p[2] }}</td>
+          <td class="py-3 px-6 text-left font-medium">{{ p[1] }}</td>
+          <td class="py-3 px-6 text-left">{{ p[5] }}</td>
+          <td class="py-3 px-6 text-right">${{ '%.2f'|format(p[3]) }}</td>
+          <td class="py-3 px-6 text-right">{{ p[4] }}</td>
+          <td class="py-3 px-6 text-center">
+            <form method="post" action="{{ url_for('product_delete', id=p[0]) }}"
+                  onsubmit="return confirm('Delete this product?');" class="inline">
+              {{ button("Delete", type='submit', variant='danger') }}
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="p-10 text-center text-gray-500">
+      <p class="text-xl mb-4">📦 No products yet.</p>
+      <p>{{ button("+ Add your first product", href=url_for('product_add'), class='font-bold') }}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

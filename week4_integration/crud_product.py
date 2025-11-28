@@ -115,3 +115,29 @@ def delete_product(pid: int):
         return False, "Cannot delete: product is referenced by sales."
     finally:
         conn.close()
+
+def update_stock(pid: int, new_stock: int):
+    """
+    Set product.quantity_stock = new_stock.
+    Returns (ok, msg) where ok is True/False.
+    """
+    sql = """
+      UPDATE product
+         SET quantity_stock = %s
+       WHERE product_id = %s
+       RETURNING product_id;
+    """
+    conn = get_connection()
+    try:
+        with conn, conn.cursor() as cur:
+            cur.execute(sql, (new_stock, pid))
+            row = cur.fetchone()
+            if not row:
+                conn.rollback()
+                return False, "Product not found."
+        return True, None
+    except Exception as e:
+        conn.rollback()
+        return False, f"Error updating stock: {e}"
+    finally:
+        conn.close()

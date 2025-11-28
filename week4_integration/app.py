@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
+from flask_login import LoginManager, login_required, current_user
 import os
 from dotenv import load_dotenv
 from stats import get_dashboard_stats
@@ -13,13 +14,30 @@ from crud_product import (
     get_all_products,
     update_stock,
 )
+from auth import auth_bp, load_user_from_db
 
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = "secret_key_for_session_management" # Change this to random string
+app.secret_key = os.getenv("SECRET_KEY", "fallback-secret-key-for-development")
+
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'auth.login' # type: ignore
+login_manager.login_message = 'Please log in to access this page.'
+login_manager.login_message_category = 'error'
+
+# User loader callback
+@login_manager.user_loader
+def load_user(operator_id):
+    return load_user_from_db(operator_id)
+
+# Register auth blueprint
+app.register_blueprint(auth_bp)
 
 @app.route('/')
+@login_required
 def dashboard():
     stats = get_dashboard_stats()
     return render_template('index.html', stats=stats)
@@ -27,6 +45,7 @@ def dashboard():
 # --- SALE MANAGEMENT (Your Implementation) ---
 
 @app.route('/sales')
+@login_required
 def sales_history():
     """Display list of past sales transactions"""
     history = get_sale_history()
@@ -48,16 +67,18 @@ def sales_history():
     return render_template('sales_history.html', sales=sales_with_items)
 
 @app.route('/sales/new')
+@login_required
 def new_sale_form():
     """Show the POS form for creating a new sale (uses live products)."""
     products = get_all_products()  # [(id, name, stock, price)]
     return render_template('new_sale.html', products=products)
 
 @app.route('/sales/create', methods=['POST'])
+@login_required
 def create_sale_action():
     """Process the sale form submission"""
     try:
-        operator_id = 1  # TODO: Get from session after login system is built
+        operator_id = current_user.operator_id  # Get from logged-in user
         customer_id = request.form.get('customer_id') or None
         
         items = []
@@ -94,6 +115,7 @@ def create_sale_action():
 # --- PLACEHOLDERS FOR TEAMMATES ---
 # Filbert will work here
 @app.route('/products')
+@login_required
 def product_list():
     rows = list_products()  # [(id, name, sku, price, qty, category_name)]
     return render_template('products.html', rows=rows)
@@ -160,6 +182,7 @@ def product_update_stock():
 
 # Arya will work here
 @app.route('/customers')
+@login_required
 def customer_list():
     customers = get_all_customers()
     return render_template('customers.html', customers=customers)

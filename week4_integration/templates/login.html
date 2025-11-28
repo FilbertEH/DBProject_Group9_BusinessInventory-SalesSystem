@@ -1,0 +1,79 @@
+{% extends "base.html" %} {% block title %}Login - Inventory System{% endblock
+%} {% block content %}
+<div class="min-h-[60vh] flex items-center justify-center">
+  <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+    <!-- Header -->
+    <div class="text-center mb-6">
+      <h1 class="text-3xl font-bold text-gray-800 mb-2">
+        📦 SmallBiz Inventory
+      </h1>
+      <p class="text-gray-600">Sign in to continue</p>
+    </div>
+
+    <!-- Login Form -->
+    <form method="POST" action="{{ url_for('auth.login') }}" class="space-y-4">
+      <!-- Username Field -->
+      <div>
+        <label
+          for="username"
+          class="block text-sm font-semibold text-gray-700 mb-2"
+        >
+          Username
+        </label>
+        <input
+          type="text"
+          name="username"
+          id="username"
+          required
+          autofocus
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          placeholder="Enter your username"
+        />
+      </div>
+
+      <!-- Password Field -->
+      <div>
+        <label
+          for="password"
+          class="block text-sm font-semibold text-gray-700 mb-2"
+        >
+          Password
+        </label>
+        <input
+          type="password"
+          name="password"
+          id="password"
+          required
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          placeholder="Enter your password"
+        />
+      </div>
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        class="w-full px-5 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg shadow-md transition"
+      >
+        Sign In
+      </button>
+    </form>
+
+    <!-- Demo Credentials Info -->
+    <div class="mt-6 p-4 rounded-lg border border-gray-200">
+      <p class="text-sm font-semibold mb-2">Demo Credentials:</p>
+      <ul class="text-xs space-y-1">
+        <li>
+          <strong>Admin:</strong> username:
+          <code class="bg-gray-200 px-1 rounded">admin</code> | password:
+          <code class="bg-gray-200 px-1 rounded">admin123</code>
+        </li>
+        <li>
+          <strong>Cashier:</strong> username:
+          <code class="bg-gray-200 px-1 rounded">cashier</code> | password:
+          <code class="bg-gray-200 px-1 rounded">admin123</code>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

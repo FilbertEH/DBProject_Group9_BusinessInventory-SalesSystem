@@ -3,6 +3,8 @@ import os
 from dotenv import load_dotenv
 from stats import get_dashboard_stats
 from sale import create_sale, get_sale_history, get_sale_with_items
+from crud_customer import get_all_customers, add_customer
+
 
 load_dotenv()
 
@@ -99,7 +101,20 @@ def product_list():
 # Arya will work here
 @app.route('/customers')
 def customer_list():
-    return "Customer Page (Under Construction by Arya)"
+    customers = get_all_customers()
+    return render_template('customers.html', customers=customers)
+
+@app.route('/customer/add', methods=['GET', 'POST'])
+def add_customer_page():
+    if request.method == 'POST':
+        name = request.form['customer_name']
+        phone = request.form['phone']
+        
+        add_customer(name, phone)
+        return redirect(url_for('customer_list'))
+
+    return render_template('add_customer.html')
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
+

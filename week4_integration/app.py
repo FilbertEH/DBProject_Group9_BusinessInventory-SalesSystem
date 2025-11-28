@@ -10,7 +10,8 @@ from crud_product import (
     list_categories,
     create_product,
     delete_product,
-    get_all_products, 
+    get_all_products,
+    update_stock,
 )
 
 load_dotenv()
@@ -133,6 +134,28 @@ def product_add():
 def product_delete(id):
     ok, msg = delete_product(id)
     flash('Product deleted.' if ok else (msg or 'Delete failed.'), 'success' if ok else 'error')
+    return redirect(url_for('product_list'))
+
+@app.route('/product/update_stock', methods=['POST'])
+def product_update_stock():
+    pid = request.form.get('product_id')
+    qty = request.form.get('new_stock')
+
+    if not pid or qty is None:
+        flash('Product ID and stock are required.', 'error')
+        return redirect(url_for('product_list'))
+
+    try:
+        pid = int(pid)
+        qty = int(qty)
+        if qty < 0:
+            raise ValueError
+    except ValueError:
+        flash('Stock must be a non-negative integer.', 'error')
+        return redirect(url_for('product_list'))
+
+    ok, msg = update_stock(pid, qty)
+    flash('Stock updated.' if ok else (msg or 'Update failed.'), 'success' if ok else 'error')
     return redirect(url_for('product_list'))
 
 # Arya will work here

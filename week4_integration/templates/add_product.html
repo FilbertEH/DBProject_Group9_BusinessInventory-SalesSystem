@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% from 'components.html' import button, form_input %}
+
+{% block title %}Add Product - Inventory System{% endblock %}
+
+{% block content %}
+<div class="container mx-auto max-w-3xl">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Add Product</h1>
+    {{ button("← Back to Products", href=url_for('product_list'), variant='secondary') }}
+  </div>
+
+  <div class="bg-white rounded-lg shadow-lg p-6">
+    <form method="POST" id="productForm">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {{ form_input('product_name', 'Product Name', required=True, placeholder='e.g., Wireless Mouse') }}
+        {{ form_input('sku', 'SKU', required=True, placeholder='e.g., TECH-001') }}
+
+        {% set category_options = [('', 'Select Category')] %}
+        {% for c in categories %}
+          {% set _ = category_options.append((c[0], c[1])) %}
+        {% endfor %}
+        {{ form_input('category_id', 'Category', type='select', required=True, options=category_options) }}
+
+        {{ form_input('price', 'Price', type='number', required=True, min=0, placeholder='e.g., 15.50') }}
+        {{ form_input('quantity_stock', 'Stock', type='number', required=True, min=0, value='0', placeholder='e.g., 10') }}
+      </div>
+
+      <div class="mt-6 flex gap-3">
+        {{ button("✓ Save", type='submit', class='flex-1 font-bold') }}
+        {{ button("✕ Cancel", href=url_for('product_list'), variant='danger', class='flex-1 font-bold text-center') }}
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

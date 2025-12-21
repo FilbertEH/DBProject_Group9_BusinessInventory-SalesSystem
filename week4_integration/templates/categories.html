@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% from 'components.html' import button %}
+
+{% block title %}Categories - Inventory System{% endblock %}
+
+{% block content %}
+<div class="container mx-auto max-w-4xl">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">📁 Categories</h1>
+    {% if current_user.is_admin() %}
+      {{ button("+ Add Category", href=url_for('category_add'), class='font-bold') }}
+    {% endif %}
+  </div>
+
+  <div class="bg-white rounded-lg shadow overflow-hidden">
+    {% if categories and categories|length > 0 %}
+    <table class="min-w-full leading-normal">
+      <thead>
+        <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+          <th class="py-3 px-6 text-left">ID</th>
+          <th class="py-3 px-6 text-left">Category Name</th>
+          {% if current_user.is_admin() %}
+          <th class="py-3 px-6 text-center">Actions</th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody class="text-gray-600 text-sm font-light">
+        {% for c in categories %}
+        <tr class="border-b border-gray-200 hover:bg-gray-50">
+          <td class="py-3 px-6 text-left">{{ c[0] }}</td>
+          <td class="py-3 px-6 text-left font-medium">{{ c[1] }}</td>
+          {% if current_user.is_admin() %}
+          <td class="py-3 px-6 text-center">
+            {{ button("Edit", href=url_for('category_edit', id=c[0]), variant='secondary', class='mr-2') }}
+            <form method="post" action="{{ url_for('category_delete', id=c[0]) }}"
+                  onsubmit="return confirm('Delete this category? This will fail if products are using it.');" class="inline">
+              {{ button("Delete", type='submit', variant='danger') }}
+            </form>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="p-10 text-center text-gray-500">
+      <p class="text-xl mb-4">📂 No categories yet.</p>
+      {% if current_user.is_admin() %}
+        <p>{{ button("+ Add your first category", href=url_for('category_add'), class='font-bold') }}</p>
+      {% else %}
+        <p class="text-gray-600">No categories available. Contact administrator to add categories.</p>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

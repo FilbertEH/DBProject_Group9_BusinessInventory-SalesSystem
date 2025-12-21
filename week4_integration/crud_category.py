@@ -49,6 +49,93 @@ def get_all_categories():
             cursor.close()
         conn.close()
 
+def get_category(category_id):
+    """Get a single category by ID"""
+    conn = get_connection()
+    if not conn:
+        return None
+
+    cursor = None
+    try:
+        cursor = conn.cursor()
+        query = "SELECT category_id, category_name FROM category WHERE category_id = %s"
+        cursor.execute(query, (category_id,))
+        result = cursor.fetchone()
+        return result
+
+    except Exception as e:
+        print(f"Error fetching category: {e}")
+        return None
+
+    finally:
+        if cursor:
+            cursor.close()
+        conn.close()
+
+def update_category(category_id, name):
+    """Update a category name"""
+    conn = get_connection()
+    if not conn:
+        return False, "Connection failed"
+
+    cursor = None
+    try:
+        cursor = conn.cursor()
+        query = "UPDATE category SET category_name = %s WHERE category_id = %s"
+        cursor.execute(query, (name, category_id))
+        conn.commit()
+
+        if cursor.rowcount == 0:
+            return False, "Category not found"
+
+        return True, None
+
+    except Exception as e:
+        conn.rollback()
+        return False, f"Error updating category: {e}"
+
+    finally:
+        if cursor:
+            cursor.close()
+        conn.close()
+
+def delete_category(category_id):
+    """Delete a category if not referenced by products"""
+    conn = get_connection()
+    if not conn:
+        return False, "Connection failed"
+
+    cursor = None
+    try:
+        cursor = conn.cursor()
+
+        # Check if category is used by any products
+        check_query = "SELECT COUNT(*) FROM product WHERE category_id = %s"
+        cursor.execute(check_query, (category_id,))
+        count = cursor.fetchone()[0]
+
+        if count > 0:
+            return False, f"Cannot delete category: {count} product(s) still using this category"
+
+        # Delete category
+        delete_query = "DELETE FROM category WHERE category_id = %s"
+        cursor.execute(delete_query, (category_id,))
+        conn.commit()
+
+        if cursor.rowcount == 0:
+            return False, "Category not found"
+
+        return True, None
+
+    except Exception as e:
+        conn.rollback()
+        return False, f"Error deleting category: {e}"
+
+    finally:
+        if cursor:
+            cursor.close()
+        conn.close()
+
 
 # Test
 if __name__ == "__main__":    

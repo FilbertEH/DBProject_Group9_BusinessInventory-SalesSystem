@@ -27,6 +27,7 @@ def list_products():
              c.category_name
       FROM product p
       JOIN category c ON c.category_id = p.category_id
+      WHERE p.is_active = TRUE
       ORDER BY p.product_name;
     """
     conn = get_connection()
@@ -101,18 +102,25 @@ def update_product(pid: int, name: str, sku: str, price: Decimal, qty: int, cate
         conn.close()
 
 def delete_product(pid: int):
-    sql = "DELETE FROM product WHERE product_id = %s;"
+    """Delete if not in sales, otherwise soft delete"""
     conn = get_connection()
     try:
         with conn, conn.cursor() as cur:
-            cur.execute(sql, (pid,))
+            # Check if product exists in any sale
+            cur.execute("SELECT 1 FROM SaleItem WHERE product_id = %s LIMIT 1;", (pid,))
+            has_sales = cur.fetchone() is not None
+
+            if has_sales:
+                # Soft delete
+                cur.execute("UPDATE product SET is_active = FALSE WHERE product_id = %s;", (pid,))
+            else:
+                # Hard delete
+                cur.execute("DELETE FROM product WHERE product_id = %s;", (pid,))
+
             if cur.rowcount == 0:
                 conn.rollback()
                 return False, "Product not found."
         return True, None
-    except errors.ForeignKeyViolation:
-        conn.rollback()
-        return False, "Cannot delete: product is referenced by sales."
     finally:
         conn.close()
 

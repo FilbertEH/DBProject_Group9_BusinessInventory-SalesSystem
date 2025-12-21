@@ -7,7 +7,9 @@
 <div class="container mx-auto max-w-5xl">
   <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold text-gray-800">🧾 Products</h1>
-    {{ button("+ Add Product", href=url_for('product_add'), class='font-bold') }}
+    {% if current_user.is_admin() %}
+      {{ button("+ Add Product", href=url_for('product_add'), class='font-bold') }}
+    {% endif %}
   </div>
 
   <div class="bg-white rounded-lg shadow overflow-hidden">
@@ -32,26 +34,34 @@
           <td class="py-3 px-6 text-right">${{ '%.2f'|format(p[3]) }}</td>
           <td class="py-3 px-6 text-right">{{ p[4] }}</td>
           <td class="py-3 px-6 text-center">
-            <form method="post" action="{{ url_for('product_update_stock') }}" class="inline-flex items-center gap-2 mr-2">
-              <input type="hidden" name="product_id" value="{{ p[0] }}">
-              <input
-                type="number"
-                name="new_stock"
-                min="0"
-                value="{{ p[4] }}"
-                class="w-24 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                aria-label="New stock for product {{ p[1] }}"
-              >
-              <button class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded">
-                Update
-              </button>
-            </form>
+            {% if current_user.is_admin() %}
+              <!-- Quick Stock Update -->
+              <form method="post" action="{{ url_for('product_update_stock') }}" class="inline-flex items-center gap-2 mr-2">
+                <input type="hidden" name="product_id" value="{{ p[0] }}">
+                <input
+                  type="number"
+                  name="new_stock"
+                  min="0"
+                  value="{{ p[4] }}"
+                  class="w-24 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-label="New stock for product {{ p[1] }}"
+                >
+                <button class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded">
+                  Update
+                </button>
+              </form>
 
-            <!-- Delete -->
-            <form method="post" action="{{ url_for('product_delete', id=p[0]) }}"
-                  onsubmit="return confirm('Delete this product?');" class="inline">
-              {{ button("Delete", type='submit', variant='danger') }}
-            </form>
+              <!-- Edit Button -->
+              {{ button("Edit", href=url_for('product_edit', id=p[0]), variant='secondary', class='mr-2') }}
+
+              <!-- Delete -->
+              <form method="post" action="{{ url_for('product_delete', id=p[0]) }}"
+                    onsubmit="return confirm('Delete this product?');" class="inline">
+                {{ button("Delete", type='submit', variant='danger') }}
+              </form>
+            {% else %}
+              <span class="text-gray-500 text-xs">View only</span>
+            {% endif %}
           </td>
         </tr>
         {% endfor %}
@@ -60,7 +70,11 @@
     {% else %}
     <div class="p-10 text-center text-gray-500">
       <p class="text-xl mb-4">📦 No products yet.</p>
-      <p>{{ button("+ Add your first product", href=url_for('product_add'), class='font-bold') }}</p>
+      {% if current_user.is_admin() %}
+        <p>{{ button("+ Add your first product", href=url_for('product_add'), class='font-bold') }}</p>
+      {% else %}
+        <p class="text-gray-600">No products available. Contact administrator to add products.</p>
+      {% endif %}
     </div>
     {% endif %}
   </div>

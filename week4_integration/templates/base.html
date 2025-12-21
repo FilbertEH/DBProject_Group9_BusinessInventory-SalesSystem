@@ -21,22 +21,45 @@
         </a>
 
         <div class="space-x-4 hidden md:flex">
-          <a href="/" class="hover:text-blue-200 transition">Dashboard</a>
-          <a href="/products" class="hover:text-blue-200 transition"
+          <a href="/" class="hover:text-blue-500 transition">Dashboard</a>
+          <a href="/products" class="hover:text-blue-500 transition"
             >Products</a
           >
-          <a href="/customers" class="hover:text-blue-200 transition"
+          <a href="/categories" class="hover:text-blue-500 transition"
+            >Categories</a
+          >
+          <a href="/customers" class="hover:text-blue-500 transition"
             >Customers</a
           >
-          <a href="/sales" class="hover:text-blue-200 transition">Sales</a>
+          <a href="/sales" class="hover:text-blue-500 transition">Sales</a>
         </div>
 
         <div>
+          {% if current_user.is_authenticated %}
+          <!-- Authenticated User Info -->
+          <div class="flex items-center gap-3">
+            <span class="text-sm">
+              <strong>{{ current_user.operator_name }}</strong>
+              <span class="text-xs text-gray-600"
+                >({{ current_user.role }})</span
+              >
+            </span>
+            <a
+              href="{{ url_for('auth.logout') }}"
+              class="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded transition"
+            >
+              Logout
+            </a>
+          </div>
+          {% else %}
+          <!-- Not Authenticated -->
           <a
-            href="#"
+            href="{{ url_for('auth.login') }}"
             class="px-3 py-1 border border-gray-400 rounded hover:bg-gray-200 transition"
-            >Login</a
           >
+            Login
+          </a>
+          {% endif %}
         </div>
       </div>
     </nav>
